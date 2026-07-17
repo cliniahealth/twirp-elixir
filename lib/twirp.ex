@@ -169,7 +169,7 @@ defmodule Twirp do
     alias Example.{Size, Hat}
 
     def make_a_hat(inches) do
-      case Client.make_hat(Size.new(inches: inches)) do
+      case Client.make_hat(%Size{inches: inches}) do
         {:ok, %Hat{}=hat} ->
           hat
 
