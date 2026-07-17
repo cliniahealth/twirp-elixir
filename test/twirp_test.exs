@@ -34,30 +34,30 @@ defmodule TwirpTest do
   end
 
   setup_all do
-    {:ok, _} = Plug.Cowboy.http TestRouter, [], [port: 4002]
+    {:ok, _} = Plug.Cowboy.http TestRouter, [], [port: 4999]
 
     :ok
   end
 
   test "clients can call services" do
-    {:ok, _} = start_supervised({Client, url: "http://localhost:4002"})
-    req = Req.new(msg: "Hello there")
+    {:ok, _} = start_supervised({Client, url: "http://localhost:4999"})
+    req = %Req{msg: "Hello there"}
 
     assert {:ok, %Resp{}=resp} = Client.echo(req)
     assert resp.msg == "Hello there"
   end
 
   test "can call services with json" do
-    {:ok, _} = start_supervised({Client, url: "http://localhost:4002", content_type: :json})
-    req = Req.new(msg: "Hello there")
+    {:ok, _} = start_supervised({Client, url: "http://localhost:4999", content_type: :json})
+    req = %Req{msg: "Hello there"}
 
     assert {:ok, %Resp{}=resp} = Client.echo(req)
     assert resp.msg == "Hello there"
   end
 
   test "users can specify deadlines" do
-    {:ok, _} = start_supervised({Client, url: "http://localhost:4002"})
-    req = Req.new(msg: "Hello there")
+    {:ok, _} = start_supervised({Client, url: "http://localhost:4999"})
+    req = %Req{msg: "Hello there"}
 
     assert {:error, resp} = Client.slow_echo(%{deadline: 5}, req)
     assert resp.code == :deadline_exceeded
@@ -80,9 +80,9 @@ defmodule TwirpTest do
       end
     ]
 
-    start_supervised({Client, url: "http://localhost:4002", interceptors: interceptors})
+    start_supervised({Client, url: "http://localhost:4999", interceptors: interceptors})
 
-    assert {:ok, req} = Client.echo(%{deadline: 1000}, Req.new(msg: "Test"))
+    assert {:ok, req} = Client.echo(%{deadline: 1000}, %Req{msg: "Test"})
     assert req.msg == "Test"
 
     assert_receive {^ref, ctx, _req}
@@ -103,9 +103,9 @@ defmodule TwirpTest do
       end
     ]
 
-    start_supervised({Client, url: "http://localhost:4002", interceptors: interceptors})
+    start_supervised({Client, url: "http://localhost:4999", interceptors: interceptors})
 
-    assert {:error, %Twirp.Error{}} = Client.echo(%{deadline: 1000}, Req.new(msg: "Test"))
+    assert {:error, %Twirp.Error{}} = Client.echo(%{deadline: 1000}, %Req{msg: "Test"})
 
     refute_receive {^ref, _ctx, _req}
   end
