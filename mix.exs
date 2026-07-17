@@ -1,14 +1,14 @@
 defmodule Twirp.MixProject do
   use Mix.Project
 
-  @version "0.8.0"
-  @source_url "https://github.com/keathley/twirp-elixir"
+  @version "0.9.0"
+  @source_url "https://github.com/cliniahealth/twirp-elixir"
 
   def project do
     [
       app: :twirp,
       version: @version,
-      elixir: "~> 1.8",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       escript: escript(),
       start_permanent: Mix.env() == :prod,
@@ -31,7 +31,6 @@ defmodule Twirp.MixProject do
       description: description(),
       package: package(),
       aliases: aliases(),
-      preferred_cli_env: ["test.generation": :test],
       name: "Twirp",
       source_url: "https://github.com/keathley/twirp",
       docs: docs()
@@ -45,6 +44,10 @@ defmodule Twirp.MixProject do
     ]
   end
 
+  def cli do
+    [preferred_envs: ["test.generation": :test]]
+  end
+
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
@@ -56,20 +59,19 @@ defmodule Twirp.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:plug, "~> 1.13"},
-      {:norm, "~> 0.9"},
-      {:jason, "~> 1.1"},
-      {:protobuf, "~> 0.9"},
-      {:google_protos, "~>0.1"},
-      {:finch, "~> 0.6", optional: true},
-      {:hackney, "~> 1.17", optional: true},
+      {:plug, "~> 1.16"},
+      {:norm, "~> 0.13"},
+      {:jason, "~> 1.4"},
+      {:protobuf, "~> 0.17"},
+      {:finch, "~> 0.18", optional: true},
+      {:hackney, "~> 1.20", optional: true},
       {:telemetry, "~> 0.4 or ~> 1.0"},
 
       {:bypass, "~> 2.1", only: [:dev, :test]},
-      {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.19", only: [:dev, :test], runtime: false},
-      {:plug_cowboy, "~> 2.0", only: [:dev, :test]},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.34", only: [:dev, :test], runtime: false},
+      {:plug_cowboy, "~> 2.7", only: [:dev, :test]},
       {:mox, "~> 1.0", only: [:test]},
     ]
   end
