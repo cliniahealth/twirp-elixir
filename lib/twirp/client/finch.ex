@@ -14,14 +14,14 @@ defmodule Twirp.Client.Finch do
   end
 
   def request(client, ctx, path, payload) do
-    # The connect_timeout here doesn't exist in finch as of version 0.6.
-    # I'm including it here so that it'll work once this timeout gets added
-    # in.
-    opts    = [
+    # Finch validates request opts strictly (>= 0.16) and has no per-request
+    # connect timeout — that's configured on the pool at start_link. So we only
+    # pass the checkout (pool) and receive timeouts here.
+    opts = [
       pool_timeout: ctx[:connect_deadline] || 1_000,
-      connect_timeout: ctx[:connect_deadline] || 1_000,
-      receive_timeout: ctx.deadline,
+      receive_timeout: ctx.deadline
     ]
+
     request = Finch.build(:post, path, ctx.headers, payload)
     Finch.request(request, client, opts)
   end

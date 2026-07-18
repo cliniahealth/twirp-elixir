@@ -8,13 +8,13 @@ defmodule Twirp.Protoc.CLI do
   def main(_) do
     # https://groups.google.com/forum/#!topic/elixir-lang-talk/T5enez_BBTI
     :io.setopts(:standard_io, encoding: :latin1)
-    bin = IO.binread(:all)
-    request = Protobuf.Decoder.decode(bin, Google.Protobuf.Compiler.CodeGeneratorRequest)
+    bin = IO.binread(:eof)
+    request = Protobuf.Decoder.decode(bin, Google.Protobuf.Compiler.CodeGeneratorRequest, [])
 
     ctx =
       %Protobuf.Protoc.Context{}
       |> Protobuf.Protoc.CLI.parse_params(request.parameter || "")
-      |> Protobuf.Protoc.CLI.find_types(request.proto_file)
+      |> Protobuf.Protoc.CLI.find_types(request.proto_file, request.file_to_generate)
 
     files =
       request.proto_file
@@ -23,7 +23,7 @@ defmodule Twirp.Protoc.CLI do
       |> Enum.map(&add_comments_to_methods/1)
       |> Enum.map(fn desc -> Twirp.Protoc.Generator.generate(ctx, desc) end)
 
-    response = Google.Protobuf.Compiler.CodeGeneratorResponse.new(file: files)
+    response = %Google.Protobuf.Compiler.CodeGeneratorResponse{file: files}
     IO.binwrite(Protobuf.Encoder.encode(response))
   end
 

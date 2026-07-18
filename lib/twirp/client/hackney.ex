@@ -24,10 +24,21 @@ defmodule Twirp.Client.Hackney do
       connect_timeout: ctx[:connect_deadline] || 1_000,
       checkout_timeout: ctx[:connect_deadline] || 1_000,
       recv_timeout: ctx.deadline,
+      # Twirp must not follow redirects — an intermediary redirect is an error,
+      # surfaced to the caller (see Twirp.Client.HTTP.build_error/2).
+      follow_redirect: false
     ]
 
-    with {:ok, status, headers, ref} <- :hackney.request(:post, path, ctx.headers, payload, options),
-         {:ok, body} <- :hackney.body(ref) do
+    with {:ok, status, headers, ref} <- :hackney.request(:post, path, ctx.headers, payload, options) do
+      # Read the body, but tolerate a failure: on a redirect (3xx) hackney can
+      # refuse the body read, and the redirect error only needs status + the
+      # location header anyway (see Twirp.Client.HTTP.build_error/2).
+      body =
+        case :hackney.body(ref) do
+          {:ok, body} -> body
+          _ -> ""
+        end
+
       {:ok, %{status: status, headers: format_headers(headers), body: body}}
     else
       {:error, :timeout} ->
