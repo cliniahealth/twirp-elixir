@@ -34,29 +34,28 @@ defmodule TwirpTest do
   end
 
   setup_all do
-    {:ok, _} = Plug.Cowboy.http TestRouter, [], [port: 4999]
-
-    :ok
+    {:ok, _} = Plug.Cowboy.http(TestRouter, [], port: 0)
+    {:ok, base_url: "http://localhost:#{:ranch.get_port(TestRouter.HTTP)}"}
   end
 
-  test "clients can call services" do
-    {:ok, _} = start_supervised({Client, url: "http://localhost:4999"})
+  test "clients can call services", %{base_url: base_url} do
+    {:ok, _} = start_supervised({Client, url: base_url})
     req = %Req{msg: "Hello there"}
 
     assert {:ok, %Resp{}=resp} = Client.echo(req)
     assert resp.msg == "Hello there"
   end
 
-  test "can call services with json" do
-    {:ok, _} = start_supervised({Client, url: "http://localhost:4999", content_type: :json})
+  test "can call services with json", %{base_url: base_url} do
+    {:ok, _} = start_supervised({Client, url: base_url, content_type: :json})
     req = %Req{msg: "Hello there"}
 
     assert {:ok, %Resp{}=resp} = Client.echo(req)
     assert resp.msg == "Hello there"
   end
 
-  test "users can specify deadlines" do
-    {:ok, _} = start_supervised({Client, url: "http://localhost:4999"})
+  test "users can specify deadlines", %{base_url: base_url} do
+    {:ok, _} = start_supervised({Client, url: base_url})
     req = %Req{msg: "Hello there"}
 
     assert {:error, resp} = Client.slow_echo(%{deadline: 5}, req)
@@ -64,7 +63,7 @@ defmodule TwirpTest do
     assert resp.meta["error_type"] == "timeout"
   end
 
-  test "clients allow interceptors" do
+  test "clients allow interceptors", %{base_url: base_url} do
     ref = make_ref()
     us = self()
 
@@ -80,7 +79,7 @@ defmodule TwirpTest do
       end
     ]
 
-    start_supervised({Client, url: "http://localhost:4999", interceptors: interceptors})
+    start_supervised({Client, url: base_url, interceptors: interceptors})
 
     assert {:ok, req} = Client.echo(%{deadline: 1000}, %Req{msg: "Test"})
     assert req.msg == "Test"
@@ -89,7 +88,7 @@ defmodule TwirpTest do
     assert {"x-twirp-deadline", "1000"} in ctx.headers
   end
 
-  test "errors halt the call chain" do
+  test "errors halt the call chain", %{base_url: base_url} do
     ref = make_ref()
     us = self()
 
@@ -103,7 +102,7 @@ defmodule TwirpTest do
       end
     ]
 
-    start_supervised({Client, url: "http://localhost:4999", interceptors: interceptors})
+    start_supervised({Client, url: base_url, interceptors: interceptors})
 
     assert {:error, %Twirp.Error{}} = Client.echo(%{deadline: 1000}, %Req{msg: "Test"})
 
